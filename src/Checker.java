@@ -1,29 +1,41 @@
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+
 // R : 82 -> 0x52| I : 73 -> 0x49 | F : 70 -> 0x46
 public class Checker {
-    byte[] header;
-    int byteRead;
-    int mask = 0xFF;
-    void getAudioType(File file) {
-        try(FileInputStream audio = new FileInputStream(file)) {
-            header = new byte[4];
-            byteRead = audio.read(header);
-            if ((header[0] & mask) == 0x52 && (header[1] & mask) == 0x49 && (header[2] & mask) == 0x46 && (header[3] & mask) == 0x46) {
-                System.out.println("wav");
-            } else if((header[0] & mask) == 0xFF){
-                System.out.println("mp3");
+    File file;
+    AudioReader reader;
+    ArrayList<AudioChecker> audioCheckers;
+
+    public Checker(File file, AudioReader reader, ArrayList<AudioChecker> audioCheckers) {
+        this.file = file;
+        this.reader = reader;
+        this.audioCheckers = audioCheckers;
+    }
+
+    String getAudioType() {
+        try {
+            byte[] header = reader.getHeader(file, 4);
+            for (AudioChecker checker : audioCheckers) {
+                String audioType = checker.getAudioType(header);
+                if (audioType != null) {
+                    return audioType;
+                }
             }
         } catch (IOException e) {
-            System.out.println("no file detected");
+            System.out.println(e.getMessage());
         }
+        return null;
     }
 
     public static void main(String[] args) {
-        Checker checker = new Checker();
-        File file = new File("d.wav");
-        checker.getAudioType(file);
-        System.out.println(0x52); 
+        File file = new File("sample.wav");
+        Reader reader = new Reader();
+        ArrayList<AudioChecker> audioCheckers = new ArrayList<>();
+        audioCheckers.add(new Mp3Checker());
+        audioCheckers.add(new WavChecker());
+        Checker checker = new Checker(file, reader, audioCheckers);
+        System.out.println(checker.getAudioType());
     }
 }
