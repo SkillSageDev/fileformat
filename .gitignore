@@ -1,0 +1,6 @@
+/FileFormat
+/lib/*
+/src/Reader.java
+/src/AudioChecker.java
+/src/WavChecker.java
+/src/Mp3Checker.java
