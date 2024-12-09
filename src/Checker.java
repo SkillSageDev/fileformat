@@ -5,10 +5,10 @@ import java.util.ArrayList;
 // R : 82 -> 0x52| I : 73 -> 0x49 | F : 70 -> 0x46
 public class Checker {
     File file;
-    AudioReader reader;
+    Reader reader;
     ArrayList<AudioChecker> audioCheckers;
 
-    public Checker(File file, AudioReader reader, ArrayList<AudioChecker> audioCheckers) {
+    public Checker(File file, Reader reader, ArrayList<AudioChecker> audioCheckers) {
         this.file = file;
         this.reader = reader;
         this.audioCheckers = audioCheckers;
@@ -31,7 +31,7 @@ public class Checker {
 
     public static void main(String[] args) {
         File file = new File("sample.wav");
-        Reader reader = new Reader();
+        Reader reader = new AudioReader();
         ArrayList<AudioChecker> audioCheckers = new ArrayList<>();
         audioCheckers.add(new Mp3Checker());
         audioCheckers.add(new WavChecker());
