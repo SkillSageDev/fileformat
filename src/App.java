@@ -5,7 +5,7 @@ public class App {
     public static void main(String[] args) throws Exception {
         boolean isMp3 = false;
         File file = new File("stab.mp3");
-        Reader reader = new Reader();
+        Reader reader = new AudioReader();
         ArrayList<AudioChecker> audioCheckers = new ArrayList<>();
         audioCheckers.add(new WavChecker());
         audioCheckers.add(new Mp3Checker());
