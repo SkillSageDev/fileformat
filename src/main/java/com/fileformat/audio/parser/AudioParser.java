@@ -1,7 +1,7 @@
 package com.fileformat.audio.parser;
 
 public interface AudioParser extends Parser {
-    public String getMPEGVersionBits();
+    public String getMpegVersionBits();
 
     public String getLayerBits();
 
@@ -23,7 +23,7 @@ public interface AudioParser extends Parser {
 
     public String getEmphasisBits();
 
-    public String getMPEGVersion();
+    public String getMpegVersion();
 
     public String getLayer();
 
@@ -44,4 +44,6 @@ public interface AudioParser extends Parser {
     public String getOriginal();
 
     public String getEmphasis();
+
+    // public String getFrameLengthInBytes();
 }

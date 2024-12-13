@@ -1,20 +1,20 @@
 package com.fileformat.audio.parser;
+
 import java.io.IOException;
 
-import com.fileformat.audio.calculator.CalcBundle;
-import com.fileformat.audio.calculator.CalcMp3Factory;
+import com.fileformat.audio.calculator.AudioCalculator;
+import com.fileformat.audio.calculator.Mp3Calculator;
 import com.fileformat.utility.ByteMerger;
 import com.fileformat.utility.Extractor;
 import com.fileformat.utility.Merger;
 
-
 public class Mp3Parser implements AudioParser {
     Extractor extractor;
-    CalcBundle calcBundle;
+    AudioCalculator calculator;
 
-    public Mp3Parser(Extractor extractor, CalcBundle calcBundle) {
+    public Mp3Parser(Extractor extractor, AudioCalculator calculator) {
         this.extractor = extractor;
-        this.calcBundle = calcBundle;
+        this.calculator = calculator;
     }
 
     // b2
@@ -51,7 +51,7 @@ public class Mp3Parser implements AudioParser {
     private String original;
     private String emphasis;
 
-    private String framLengthInBytes;
+    private String frameLengthInBytes;
 
     @Override
     public void parseBits(byte[] bytes) throws IOException {
@@ -63,58 +63,54 @@ public class Mp3Parser implements AudioParser {
         // end = 31 - 19 + 1 = 13
 
         mpegVersionBits = extractor.getBitsFromByte(bytes, (31 - 20), (31 - 19 + 1));
-        mpegVersion = calcBundle.getCalcMPEGVersion().getMPEGVersion(mpegVersionBits);
+        mpegVersion = calculator.getMpegVersion(mpegVersionBits);
 
         layerBits = extractor.getBitsFromByte(bytes, (31 - 18), (31 - 17 + 1));
-        layer = calcBundle.getCalcLayer().getLayer(layerBits);
+        layer = calculator.getLayer(layerBits);
 
         protectionBits = extractor.getBitsFromByte(bytes, (31 - 16), (31 - 16 + 1));
-        protection = calcBundle.getCalcProtection().getProtection(protectionBits);
+        protection = calculator.getProtection(protectionBits);
 
         // b2
         bitrateBits = extractor.getBitsFromByte(bytes, (31 - 15), (31 - 12 + 1));
-        bitrate = calcBundle.getCalcBitrate().getBitrate(bitrateBits, mpegVersion, layer);
+        bitrate = calculator.getBitrate(bitrateBits, mpegVersion, layer);
 
-        samplingRateBits = extractor.getBitsFromByte(bytes, (31 - 11), (31 - 10));
-        samplingRate = calcBundle.getCalcSamplingRate().getSamplingRate(samplingRateBits, mpegVersion);
+        samplingRateBits = extractor.getBitsFromByte(bytes, (31 - 11), (31 - 10 + 1));
+        samplingRate = calculator.getSamplingRate(samplingRateBits, mpegVersion);
 
         paddingBits = extractor.getBitsFromByte(bytes, (31 - 9), (31 - 9 + 1));
-        padding = calcBundle.getCalcPadding().getPadding(paddingBits);
+        padding = calculator.getPadding(paddingBits);
 
         // b3
         channelBits = extractor.getBitsFromByte(bytes, (31 - 7), (31 - 6 + 1));
-        channel = calcBundle.getCalcChannel().getChannel(channelBits);
+        channel = calculator.getChannel(channelBits);
 
         modeExtensionBits = (channel.equals("Joint stereo (Stereo)"))
                 ? extractor.getBitsFromByte(bytes, (31 - 5), (31 - 4 + 1))
                 : "null";
-        modeExtension = calcBundle.getCalcModeExtension().getModeExtension(modeExtensionBits, layer, channel);
+        modeExtension = calculator.getModeExtension(modeExtensionBits, layer, channel);
 
         copyrightBits = extractor.getBitsFromByte(bytes, (31 - 3), (31 - 3 + 1));
-        copyright = calcBundle.getCalcCopyRight().getCopyright(copyrightBits);
+        copyright = calculator.getCopyright(copyrightBits);
 
         originalBits = extractor.getBitsFromByte(bytes, (31 - 2), (31 - 2 + 1));
-        original = calcBundle.getCalcOriginal().getOriginal(originalBits);
+        original = calculator.getOriginal(originalBits);
 
         emphasisBits = extractor.getBitsFromByte(bytes, (31 - 1), (31 - 0 + 1));
-        emphasis = calcBundle.getCalcEmphasis().getEmphasis(emphasisBits);
+        emphasis = calculator.getEmphasis(emphasisBits);
 
-        // Check if bitrate, samplingRate, and padding are valid before parsing
-        if (!bitrate.equals("bad") && !samplingRate.equals("bad") && !padding.equals("bad")) {
-            framLengthInBytes = (layer.equals("Layer I"))
-                    ? Integer.toString((12 * Integer.parseInt(bitrate) / Integer.parseInt(samplingRate)
-                            + Integer.parseInt(padding)) * 4)
-                    : Integer.toString(144 * Integer.parseInt(bitrate) / Integer.parseInt(samplingRate)
-                            + Integer.parseInt(padding));
-        } else {
-            // Handle the case where the values are invalid
-            System.out.println("Error: Invalid bitrate, sampling rate, or padding.");
-            framLengthInBytes = "unknown"; // Or another default value
-        }
+        // frameLengthInBytes = calculator.getFrameLengthInBytes(bitrate, samplingRate, padding, layer);
+        // if (frameLengthInBytes.equals("error")) {
+        //     // Handle the error case
+        //     System.out.println("Failed to calculate frame length.");
+        // } else {
+        //     // Proceed with using frameLengthInBytes
+        //     System.out.println("Frame length in bytes: " + frameLengthInBytes);
+        // }
 
     }
 
-    public String getMPEGVersionBits() {
+    public String getMpegVersionBits() {
         return mpegVersionBits;
     }
 
@@ -158,7 +154,7 @@ public class Mp3Parser implements AudioParser {
         return emphasisBits;
     }
 
-    public String getMPEGVersion() {
+    public String getMpegVersion() {
         return mpegVersion;
     }
 
@@ -202,16 +198,17 @@ public class Mp3Parser implements AudioParser {
         return emphasis;
     }
 
-    public String getFramLengthInBytes() {
-        return framLengthInBytes;
+    public String getFrameLengthInBytes() {
+        return frameLengthInBytes;
     }
 
     public static void main(String[] args) throws IOException {
         Merger merger = new ByteMerger();
         Extractor extractor = new Extractor(merger);
-        AudioParser parser = new Mp3Parser(extractor, CalcMp3Factory.createCalcMp3Bundle());
+        AudioCalculator calculator = new Mp3Calculator();
+        AudioParser parser = new Mp3Parser(extractor, calculator);
         byte[] bytes = { (byte) 0x0f, (byte) 0xff, (byte) 0xff, (byte) 0xff, };
         parser.parseBits(bytes);
-        System.out.println(parser.getMPEGVersion());
+        System.out.println(parser.getMpegVersion());
     }
 }
