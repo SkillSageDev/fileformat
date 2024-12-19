@@ -20,7 +20,7 @@ import com.fileformat.utility.*;
 public class AudioAssignment {
     public static void main(String[] args) throws IOException {
         boolean isMp3 = false;
-        File file = new File("src/main/resources/sample.wav");
+        File file = new File("src\\main\\resources\\audios\\stab.mp3");
         Reader reader = new AudioReader();
         List<Checker> audioCheckers = new ArrayList<>();
         audioCheckers.add(new Mp3Checker());

@@ -8,45 +8,25 @@ import com.fileformat.core.Checker;
 import com.fileformat.core.Reader;
 
 public class RawChecker implements Checker {
+
     @Override
     public String getFileType(byte[] header) {
         int mask = 0xFF;
-        // Check for various RAW file signatures
-        if (isCanonRaw(header, mask) || isNikonRaw(header, mask) ||
-                isSonyRaw(header, mask) || isAdobeDng(header, mask) ||
-                isOlympusRaw(header, mask) || isPentaxRaw(header, mask)) {
+        
+        // Check for Canon RAW (CR2) specifically, using further header checks
+        if (isCanonRaw(header, mask)) {
             return "raw";
         }
+        
+        // ... Add similar checks for Nikon, Sony, etc.
         return null;
     }
 
     private boolean isCanonRaw(byte[] header, int mask) {
-        return (header[0] & mask) == 0x49 && (header[1] & mask) == 0x49 &&
-                (header[2] & mask) == 0x2A && (header[3] & mask) == 0x00;
+        // First check is TIFF-like, then add more specific check for Canon RAW
+        return (header[0] & mask) == 0x49 && (header[1] & mask) == 0x49 && (header[2] & mask) == 0x2A && (header[3] & mask) == 0x00
+            && (header[8] & mask) == 0x43 && (header[9] & mask) == 0x52;  // "CR" signature for Canon
     }
-
-    private boolean isNikonRaw(byte[] header, int mask) {
-        return (header[0] & mask) == 0x4E && (header[1] & mask) == 0x45 &&
-                (header[2] & mask) == 0x46 && (header[3] & mask) == 0x00;
-    }
-
-    private boolean isSonyRaw(byte[] header, int mask) {
-        return (header[0] & mask) == 0x38 && (header[1] & mask) == 0x42 &&
-                (header[2] & mask) == 0x50 && (header[3] & mask) == 0x53;
-    }
-
-    private boolean isAdobeDng(byte[] header, int mask) {
-        return (header[0] & mask) == 0x49 && (header[1] & mask) == 0x49 &&
-                (header[2] & mask) == 0x2A && (header[3] & mask) == 0x00; // Same as Canon
-    }
-
-    private boolean isOlympusRaw(byte[] header, int mask) {
-        return (header[0] & mask) == 0x4F && (header[1] & mask) == 0x52 &&
-                (header[2] & mask) == 0x46 && (header[3] & mask) == 0x00;
-    }
-
-    private boolean isPentaxRaw(byte[] header, int mask) {
-        return (header[0] & mask) == 0x50 && (header[1] & mask) == 0x45 &&
-                (header[2] & mask) == 0x46 && (header[3] & mask) == 0x00;
-    }
+    
+    // Additional checks for Nikon, Sony, etc.
 }
