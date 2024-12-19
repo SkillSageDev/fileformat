@@ -1,6 +1,7 @@
 package com.fileformat.audio.printer;
 
 import com.fileformat.audio.parser.AudioParser;
+import com.fileformat.core.Printer;
 
 public class Mp3Printer implements Printer{
 
